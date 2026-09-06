@@ -31,7 +31,7 @@
         </button>
       </div>
 
-      <button class="mt-5 w-full h-[44px] rounded-xl border border-red-200 bg-red-50 text-red-600 font-semibold text-[13px] hover:bg-red-100 transition">Log out</button>
+      <button @click="$emit('logout')" class="mt-5 w-full h-[44px] rounded-xl border border-red-200 bg-red-50 text-red-600 font-semibold text-[13px] hover:bg-red-100 transition">Clear Data & Log out</button>
       <p class="mt-3 text-center text-[11px] text-gray-400">v1.0.0 • Telegram Mini App</p>
     </div>
   </div>
@@ -39,6 +39,7 @@
 
 <script setup>
 defineProps({ user: Object })
+defineEmits(['logout'])
 const menu = [
   { label: 'Edit Profile', icon: '✏️' },
   { label: 'Study Material', icon: '📚' },

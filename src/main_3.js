@@ -5,11 +5,19 @@ import './assets/style.css'
 const app = createApp(App)
 app.mount('#app')
 
-// Telegram WebApp init
 if (window.Telegram?.WebApp) {
   const tg = window.Telegram.WebApp
   tg.ready()
   tg.expand()
   tg.setHeaderColor('#ffffff')
   tg.setBackgroundColor('#F0FDF4')
+  
+  if (tg.CloudStorage) {
+    console.log('✅ Telegram CloudStorage available')
+    tg.CloudStorage.getKeys((err, keys) => {
+      if (!err) console.log('Stored keys:', keys)
+    })
+  }
+} else {
+  console.log('Running outside Telegram - using localStorage')
 }
