@@ -5,9 +5,8 @@
     <div v-if="store.screen.value === 'main'" class="flex-1 flex flex-col bg-[#F6FFF8] min-h-screen relative">
       <AppHeader :user="currentUser" />
       <main class="flex-1 overflow-y-auto scrollbar-hide" style="padding-bottom: 88px;">
-        <HomeView v-if="tab === 'home'" :user="currentUser" @goLeaderboard="tab='leaderboard'" @goDoubts="tab='doubts'" />
+        <HomeView v-if="tab === 'home'" :user="currentUser" @goLeaderboard="tab='leaderboard'" />
         <Leaderboard v-if="tab === 'leaderboard'" :current-rank="store.currentRank.value" />
-        <DoubtsView v-if="tab === 'doubts'" />
         <ProfileSection v-if="tab === 'profile'" :user="currentUser" @logout="handleLogout" />
       </main>
       <BottomNav :active="tab" @change="tab = $event" />
@@ -24,7 +23,6 @@ import AppHeader from './components/AppHeader.vue'
 import BottomNav from './components/BottomNav.vue'
 import HomeView from './views/HomeView.vue'
 import Leaderboard from './components/Leaderboard.vue'
-import DoubtsView from './components/DoubtsCard.vue'
 import ProfileSection from './components/ProfileSection.vue'
 
 const store = useUserStore()
