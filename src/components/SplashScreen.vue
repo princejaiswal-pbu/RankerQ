@@ -1,30 +1,15 @@
 <template>
-  <div class="flex-1 flex flex-col items-center justify-between bg-gradient-to-b from-ca-50 to-white p-8 min-h-screen cursor-pointer" @click="$emit('finished')">
-    <div class="flex-1 flex flex-col items-center justify-center">
-      <!-- Logo -->
-      <div class="w-24 h-24 rounded-[22px] bg-ca-600 shadow-green flex items-center justify-center relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
-        <span class="jakarta text-white font-bold text-[36px] tracking-tight relative z-10">CA</span>
-      </div>
-      <h1 class="jakarta mt-6 text-[26px] font-bold text-ca-800 tracking-tight">CA Series</h1>
-      <p class="mt-2 text-[13px] font-medium text-ca-700/70 tracking-[0.2em] uppercase">Crack CA with Confidence</p>
-      
-      <!-- Loader -->
-      <div class="mt-10 flex gap-2">
-        <span class="w-2 h-2 rounded-full bg-ca-600 animate-bounce"></span>
-        <span class="w-2 h-2 rounded-full bg-ca-600 animate-bounce [animation-delay:0.15s]"></span>
-        <span class="w-2 h-2 rounded-full bg-ca-600 animate-bounce [animation-delay:0.3s]"></span>
-      </div>
-      <p class="mt-6 text-[12px] text-gray-400">Tap to continue</p>
-    </div>
-    <p class="text-[11px] text-gray-400 font-medium tracking-wide">Powered by ICAI Aspirants • Telegram Mini App</p>
+  <div class="min-h-screen bg-[#F0FDF4] flex flex-col items-center justify-center p-8 relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-ca-100 rounded-full -mr-32 -mt-32 opacity-50"></div>
+    <div class="absolute bottom-0 left-0 w-80 h-80 bg-ca-100 rounded-full -ml-40 -mb-40 opacity-30"></div>
+    <div class="w-20 h-20 rounded-[20px] bg-ca-600 flex items-center justify-center text-white font-bold text-2xl shadow-green jakarta relative z-10 animate-pulse">CA</div>
+    <h1 class="jakarta font-bold text-[24px] mt-6 text-gray-900 relative z-10">CA Series</h1>
+    <p class="text-[13px] text-gray-500 mt-2 relative z-10">Crack CA with AI + PYQ + Streaks</p>
+    <div class="mt-10 w-8 h-8 border-4 border-ca-100 border-t-ca-600 rounded-full animate-spin"></div>
   </div>
 </template>
-
 <script setup>
 import { onMounted } from 'vue'
-const emit = defineEmits(['finished'])
-onMounted(() => {
-  setTimeout(() => emit('finished'), 2500)
-})
+const emit=defineEmits(['finished'])
+onMounted(()=>{ setTimeout(()=>emit('finished'),2500) })
 </script>

@@ -1,0 +1,1 @@
+<template><div class='p-5'><h2>QuizPlayer.vue</h2><p>Component loaded - implement logic</p></div></template>
