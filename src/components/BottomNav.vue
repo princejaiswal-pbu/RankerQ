@@ -16,7 +16,6 @@ defineEmits(['change'])
 const tabs = [
   { id: 'home', label: 'Home', icon: '🏠' },
   { id: 'leaderboard', label: 'Rank', icon: '🏆' },
-  { id: 'doubts', label: 'Doubts', icon: '💬' },
   { id: 'profile', label: 'You', icon: '👤' },
 ]
 </script>

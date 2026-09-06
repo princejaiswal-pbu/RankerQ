@@ -1,151 +1,66 @@
 <template>
   <div class="p-5 pb-10">
     <h1 class="jakarta text-[20px] font-bold text-gray-900">Hi, {{ user.name.split(' ')[0] }} 👋</h1>
-    <p class="text-[13px] text-gray-500 mt-1">Ready to crack today's target?</p>
+    <p class="mt-1 text-[13px] text-gray-500">Your exam-ready revision plan is waiting.</p>
 
-    <!-- Stats Row - NOW WORKING -->
     <div class="mt-5 grid grid-cols-3 gap-3">
-      <div class="ca-card p-3 text-center relative overflow-hidden group hover:shadow-card-hover transition cursor-pointer" @click="showStreakInfo = true">
-        <div class="absolute inset-0 bg-gradient-to-br from-orange-50 to-transparent opacity-0 group-hover:opacity-100 transition"></div>
-        <p class="text-[20px] font-bold jakarta text-gray-900 relative z-10 flex items-center justify-center gap-1">{{ streak }}<span class="text-[16px]">🔥</span></p>
-        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mt-1 relative z-10">Streak</p>
-        <p class="text-[9px] text-orange-600 font-semibold mt-1 relative z-10">{{ streakText }}</p>
-      </div>
-      <div class="ca-card p-3 text-center hover:shadow-card-hover transition">
-        <p class="text-[20px] font-bold jakarta text-gray-900">{{ quizzesDone }}</p>
-        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mt-1">Quizzes</p>
-        <p class="text-[9px] text-ca-600 font-semibold mt-1">+{{ xp }} XP</p>
-      </div>
-      <div class="ca-card p-3 text-center hover:shadow-card-hover transition cursor-pointer" @click="$emit('goLeaderboard')">
-        <p class="text-[20px] font-bold jakarta text-ca-700">#{{ rank }}</p>
-        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mt-1">Rank</p>
-        <p class="text-[9px] text-gray-500 font-semibold mt-1">Top {{ rankPercent }}%</p>
-      </div>
+      <button class="ca-card p-3 text-center" @click="showLeague = true"><p class="text-[20px] font-bold jakarta">{{ streak }}🔥</p><p class="metric-label">Streak</p><p class="metric-sub">League week</p></button>
+      <div class="ca-card p-3 text-center"><p class="text-[20px] font-bold jakarta">{{ quizzesDone }}</p><p class="metric-label">Quizzes</p><p class="metric-sub">+{{ xp }} XP</p></div>
+      <button class="ca-card p-3 text-center" @click="$emit('goLeaderboard')"><p class="text-[20px] font-bold jakarta text-ca-700">#{{ rank }}</p><p class="metric-label">Rank</p><p class="metric-sub">Top {{ rankPercent }}%</p></button>
     </div>
 
-    <!-- Quiz Card Component -->
-    <div class="mt-5">
-      <QuizCard :quiz="todaysQuiz" @start="startQuiz" />
-    </div>
+    <div class="mt-5"><QuizCard :quiz="todaysQuiz" @start="startQuiz" /></div>
 
-    <!-- Doubts Preview Card -->
-    <div class="mt-5 ca-card p-5">
-      <div class="flex justify-between items-center">
-        <h3 class="jakarta font-bold text-[15px] text-gray-900">Doubts Card</h3>
-        <span class="text-[11px] font-bold px-2 py-1 rounded-full bg-ca-50 text-ca-700 border border-ca-100">{{ doubts.length }} active</span>
-      </div>
-      <div class="mt-4 h-[44px] rounded-xl bg-[#F9FFFB] border border-dashed border-[#BBF7D0] flex items-center gap-3 px-4 cursor-pointer hover:bg-ca-50 transition" @click="$emit('goDoubts')">
-        <span class="w-7 h-7 rounded-full bg-ca-600 text-white flex items-center justify-center text-sm">?</span>
-        <span class="text-[13px] text-gray-400">Ask your doubt in Law, Accounts...</span>
-      </div>
-      <div class="mt-4 space-y-3">
-        <div v-for="d in doubts.slice(0,2)" :key="d.id" class="flex gap-3 p-3 rounded-xl bg-[#F6FFF8] border border-ca-50">
-          <div class="w-8 h-8 rounded-full bg-white border flex items-center justify-center text-[12px]">🎓</div>
-          <div class="flex-1">
-            <p class="text-[13px] font-medium text-gray-900 leading-4">{{ d.q }}</p>
-            <p class="text-[11px] text-gray-500 mt-1">{{ d.status }} • {{ d.time }}</p>
-          </div>
-          <span :class="d.status === 'Solved' ? 'bg-ca-50 text-ca-700 border-ca-200' : 'bg-amber-50 text-amber-700 border-amber-200'" class="h-fit text-[10px] font-bold px-2 py-1 rounded-full border">{{ d.status }}</span>
-        </div>
-      </div>
-    </div>
+    <section class="mt-5 rounded-[20px] bg-[#123D27] p-5 text-white relative overflow-hidden">
+      <div class="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-[#B8F4C9]/15"></div>
+      <div class="relative flex items-start justify-between"><div><p class="text-[11px] font-bold tracking-widest uppercase text-[#B8F4C9]">Mistake Book · Auto-saved</p><h2 class="jakarta mt-1 text-[19px] font-bold">You got {{ mistakes }} mistakes</h2><p class="mt-1 text-[12px] text-white/75">ICAI repeats concepts. Revise before they repeat in your paper.</p></div><span class="text-2xl">📚</span></div>
+      <button class="mt-4 h-11 w-full rounded-xl bg-[#D9FFE3] text-[13px] font-bold text-[#14532D] active:scale-[.98]" @click="openRevision">Revise in {{ revisionMinutes }} mins →</button>
+    </section>
 
-    <div class="mt-5 grid grid-cols-2 gap-3">
-      <div class="rounded-2xl bg-[#14532D] p-4 text-white relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
-        <p class="text-[12px] opacity-80 relative z-10">PYQ Bank</p>
-        <p class="jakarta font-bold mt-1 relative z-10">500+ Solved</p>
-        <p class="text-[11px] mt-2 opacity-70 relative z-10">Foundation + Inter</p>
-      </div>
-      <div class="rounded-2xl bg-white border border-[#E5F7E9] p-4 hover:shadow-card transition cursor-pointer" @click="$emit('goLeaderboard')">
-        <p class="text-[12px] text-gray-500">Your Rank</p>
-        <p class="jakarta font-bold mt-1 text-gray-900">#{{ rank }} • {{ xp }} XP</p>
-        <p class="text-[11px] mt-2 text-ca-600 font-semibold">View leaderboard →</p>
-      </div>
-    </div>
+    <section class="mt-5 ca-card p-5">
+      <div class="flex items-start justify-between"><div><p class="text-[11px] font-bold tracking-widest uppercase text-ca-700">PYQ Bank · 2018–2024</p><h2 class="jakarta mt-1 text-[17px] font-bold">ICAI pattern, chapter by chapter</h2></div><span class="text-2xl">🎯</span></div>
+      <div class="mt-4 grid grid-cols-2 gap-2"><select v-model="subject" class="filter-select"><option>Foundation Law</option><option>Accounts</option></select><select v-model="chapter" class="filter-select"><option v-for="item in chapters" :key="item">{{ item }}</option></select></div>
+      <div class="mt-3 flex items-center justify-between rounded-xl bg-[#F6FFF8] px-3 py-3"><div><p class="text-[13px] font-bold text-gray-900">{{ subject }} → {{ chapter }}</p><p class="mt-0.5 text-[11px] text-gray-500">{{ filteredPyqs.length }} PYQs · Exact ICAI marking scheme</p></div><span class="tag">ICAI Asked {{ repeatCount }} times</span></div>
+      <button class="mt-3 w-full text-center text-[13px] font-bold text-ca-700" @click="showPyqs = true">Open {{ filteredPyqs.length }} PYQs →</button>
+    </section>
 
-    <!-- Quiz Modal - Now actually completes quiz -->
-    <div v-if="showModal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" @click.self="showModal = false">
-      <div class="w-full max-w-[360px] bg-white rounded-[20px] p-6 shadow-2xl">
-        <div class="w-12 h-12 rounded-full bg-ca-50 flex items-center justify-center mx-auto text-xl">🚀</div>
-        <h3 class="jakarta text-center font-bold text-[18px] mt-4">{{ quizCompleted ? 'Quiz Completed! 🎉' : 'Starting Quiz' }}</h3>
-        <p class="text-center text-[13px] text-gray-500 mt-2">{{ todaysQuiz.title }} • {{ todaysQuiz.meta }}</p>
-        
-        <div v-if="quizCompleted" class="mt-4 p-3 rounded-xl bg-ca-50 border border-ca-100 text-center">
-          <p class="text-[14px] font-bold text-ca-800">+{{ todaysQuiz.xp }} XP Earned!</p>
-          <p class="text-[11px] text-ca-600 mt-1">Streak: {{ streak }} days • Total: {{ quizzesDone }} quizzes</p>
-        </div>
+    <section class="mt-5 ca-card p-4"><div class="flex items-center justify-between gap-3"><div><p class="text-[13px] font-bold">Telegram reminders</p><p class="mt-0.5 text-[11px] text-gray-500">8 AM quiz · 9 PM streak check</p></div><button class="toggle" :class="remindersEnabled ? 'bg-ca-600' : 'bg-gray-300'" @click="toggleReminders"><span :class="remindersEnabled ? 'translate-x-5' : 'translate-x-1'" /></button></div><p class="mt-2 text-[10px] text-gray-400">{{ remindersEnabled ? 'Reminders enabled for your linked Telegram chat.' : 'Reminders are paused.' }}</p></section>
 
-        <button @click="completeQuiz" class="mt-5 w-full h-[44px] rounded-xl bg-ca-600 text-white font-semibold hover:bg-ca-700 transition">
-          {{ quizCompleted ? 'Awesome! Close' : 'Start Now →' }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Streak Info Modal -->
-    <div v-if="showStreakInfo" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" @click.self="showStreakInfo = false">
-      <div class="w-full max-w-[320px] bg-white rounded-[20px] p-6 shadow-2xl text-center">
-        <div class="text-4xl">🔥</div>
-        <h3 class="jakarta font-bold text-[18px] mt-3">{{ streak }}-Day Streak!</h3>
-        <p class="text-[13px] text-gray-500 mt-2 leading-5">You have studied for {{ streak }} consecutive days. Keep going to build your streak!</p>
-        <div class="mt-4 flex justify-center gap-1">
-          <div v-for="i in 7" :key="i" :class="i <= streak ? 'bg-ca-600' : 'bg-gray-200'" class="w-8 h-2 rounded-full"></div>
-        </div>
-        <button @click="showStreakInfo = false" class="mt-5 w-full h-10 rounded-xl bg-gray-100 text-gray-700 font-semibold text-sm">Close</button>
-      </div>
-    </div>
+    <div v-if="showQuiz" class="modal" @click.self="closeQuiz"><div class="modal-card"><div class="flex justify-between text-[11px] font-bold text-ca-700"><span>QUESTION {{ quizIndex + 1 }}/{{ quizQuestions.length }}</span><span>+{{ todaysQuiz.xp }} XP on completion</span></div><h3 class="jakarta mt-4 text-[18px] font-bold">{{ activeQuestion.question }}</h3><button v-for="option in activeQuestion.options" :key="option" class="answer" :class="selectedOption === option ? 'border-ca-600 bg-ca-50' : ''" @click="selectedOption = option">{{ option }}</button><p v-if="quizFeedback" class="mt-3 text-[12px] font-semibold" :class="isCorrect ? 'text-ca-700' : 'text-orange-600'">{{ quizFeedback }}</p><button class="primary-btn" :disabled="!selectedOption" @click="submitAnswer">{{ quizFeedback ? (quizIndex === quizQuestions.length - 1 ? 'Finish quiz' : 'Next question') : 'Check answer' }}</button></div></div>
+    <div v-if="showRevision" class="modal" @click.self="showRevision=false"><div class="modal-card"><div class="flex items-center justify-between"><div><p class="text-[11px] font-bold text-ca-700">MISTAKE BOOK</p><h3 class="jakarta text-[18px] font-bold">Quick revision</h3></div><button @click="showRevision=false">✕</button></div><div v-if="activeMistake" class="mt-4"><p class="text-[13px] font-semibold">{{ activeMistake.question }}</p><p class="mt-2 rounded-xl bg-ca-50 p-3 text-[12px] text-ca-800"><strong>ICAI concept:</strong> {{ activeMistake.explanation }}</p><button class="primary-btn" @click="markRevised">I’ve revised this ✓</button></div><div v-else class="py-8 text-center"><p class="text-3xl">🎉</p><p class="mt-2 text-[13px] font-semibold">Your Mistake Book is clear.</p></div></div></div>
+    <div v-if="showPyqs" class="modal" @click.self="showPyqs=false"><div class="modal-card"><div class="flex justify-between"><div><h3 class="jakarta text-[17px] font-bold">{{ chapter }} PYQs</h3><p class="text-[11px] text-gray-500">{{ subject }} · 2018–2024</p></div><button @click="showPyqs=false">✕</button></div><div class="mt-3 max-h-[55vh] space-y-2 overflow-y-auto"><article v-for="pyq in filteredPyqs" :key="pyq.id" class="rounded-xl border border-ca-100 p-3"><div class="flex justify-between gap-2"><p class="text-[12px] font-semibold">{{ pyq.question }}</p><span class="tag whitespace-nowrap">Asked {{ pyq.asked }}×</span></div><p class="mt-1 text-[11px] text-gray-500">{{ pyq.year }} · {{ pyq.marks }} marks · ICAI marking scheme</p><button class="mt-2 text-[11px] font-bold text-ca-700" @click="pyq.expanded = !pyq.expanded">{{ pyq.expanded ? 'Hide answer' : 'View suggested answer' }}</button><p v-if="pyq.expanded" class="mt-2 rounded-lg bg-[#F6FFF8] p-2 text-[11px] leading-4 text-gray-700">{{ pyq.answer }}</p></article></div></div></div>
+    <div v-if="showLeague" class="modal" @click.self="showLeague=false"><div class="modal-card text-center"><p class="text-3xl">🏅</p><h3 class="jakarta mt-3 text-[18px] font-bold">CA Streak League</h3><p class="mt-2 text-[13px] text-gray-500">You’re #{{ rank }} in a weekly league of 30 CA students. Top 3 earn the CA Series Champion badge.</p><button class="primary-btn" @click="shareRank">Share my rank on Telegram</button><p v-if="shareMessage" class="mt-3 text-[11px] font-semibold text-ca-700">{{ shareMessage }}</p></div></div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useUserStore } from '../stores/useUserStore.js'
 import QuizCard from '../components/QuizCard.vue'
 
-const props = defineProps({ user: Object })
-const emit = defineEmits(['goLeaderboard', 'goDoubts'])
-
+defineProps({ user: Object })
+defineEmits(['goLeaderboard'])
 const store = useUserStore()
-const showModal = ref(false)
-const showStreakInfo = ref(false)
-const quizCompleted = ref(false)
-
-const streak = computed(() => store.streak.value)
-const quizzesDone = computed(() => store.quizzesDone.value)
-const xp = computed(() => store.xp.value)
-const rank = computed(() => store.currentRank.value)
-const rankPercent = computed(() => Math.max(1, Math.min(99, Math.floor((rank.value / 50) * 100))))
-const streakText = computed(() => {
-  if (streak.value === 0) return 'Start today'
-  if (streak.value === 1) return 'Day 1'
-  if (streak.value < 7) return `${streak.value} days`
-  if (streak.value < 30) return 'On fire!'
-  return 'Legendary!'
-})
-
-const todaysQuiz = ref({ title: 'Business Laws - Contracts', meta: '15 Qs • 20 mins', xp: 150, progress: 60 })
-const doubts = ref([
-  { id: 1, q: 'Difference between void and voidable contract with example?', status: 'Solved', time: '2h ago' },
-  { id: 2, q: 'How to calculate goodwill under super profit method?', status: 'Pending', time: '5h ago' },
-])
-
-function startQuiz() {
-  quizCompleted.value = false
-  showModal.value = true
-}
-
-function completeQuiz() {
-  if (!quizCompleted.value) {
-    // First click = complete quiz
-    store.completeQuiz(todaysQuiz.value.xp)
-    quizCompleted.value = true
-    // Add confetti haptic
-    if (window.Telegram?.WebApp?.HapticFeedback) {
-      window.Telegram.WebApp.HapticFeedback.notificationOccurred('success')
-    }
-  } else {
-    showModal.value = false
-    quizCompleted.value = false
-  }
-}
+const showQuiz = ref(false), showPyqs = ref(false), showLeague = ref(false), showRevision = ref(false)
+const subject = ref('Foundation Law'), chapter = ref('Contracts'), quizIndex = ref(0), selectedOption = ref(''), quizFeedback = ref(''), isCorrect = ref(false), revisionIndex = ref(0), shareMessage = ref('')
+const quizQuestions = [{ question: 'A contract without consideration is generally:', options: ['Void', 'Valid', 'Illegal'], answer: 'Void', explanation: 'Section 25 makes an agreement without consideration void, subject to specified exceptions.' }, { question: 'Acceptance must be:', options: ['Absolute and unqualified', 'Conditional', 'Silent'], answer: 'Absolute and unqualified', explanation: 'Acceptance must be absolute and unqualified under Section 7.' }, { question: 'A minor’s agreement is:', options: ['Void ab initio', 'Voidable', 'Valid after majority'], answer: 'Void ab initio', explanation: 'A minor is not competent to contract; the agreement is void from the beginning.' }]
+const pyqTemplates = { 'Foundation Law': { Contracts: ['Explain the rule "No consideration, no contract" and state its exceptions.', 'Distinguish between void and voidable agreements.', 'When does communication of acceptance become complete?', 'Explain the legal position of a minor’s agreement.', 'State the essentials of a valid contract.'], 'Sale of Goods': ['Distinguish between a condition and a warranty.', 'Explain the rule of caveat emptor and its exceptions.', 'When does property in unascertained goods pass?', 'Define an unpaid seller and state his rights.', 'Explain a contract of sale and agreement to sell.'] }, Accounts: { 'Journal Entries': ['Pass journal entries for issue of shares at premium.', 'Record forfeiture and reissue of shares.', 'Prepare entries for redemption of debentures.', 'Pass adjustment entries for outstanding expenses.', 'Record purchase of fixed assets on credit.'], 'Final Accounts': ['Prepare a Statement of Profit and Loss from the given trial balance.', 'Show treatment of closing stock in final accounts.', 'Prepare a Balance Sheet as per Schedule III.', 'Explain adjustments for depreciation and provision for doubtful debts.', 'Prepare a Trading Account from the given information.'] } }
+const years = [2024, 2023, 2022, 2021, 2020, 2019, 2018, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2024]
+const chapters = computed(() => Object.keys(pyqTemplates[subject.value]))
+watch(subject, () => { chapter.value = chapters.value[0] })
+const filteredPyqs = computed(() => years.map((year, index) => ({ id: `${subject.value}-${chapter.value}-${index}`, year, marks: index % 2 ? 4 : 6, asked: index % 5 === 0 ? 3 : index % 3 === 0 ? 2 : 1, question: pyqTemplates[subject.value][chapter.value][index % 5], answer: 'Use the ICAI format: state the rule, apply it to the facts, and conclude with the relevant section.', expanded: false })))
+const repeatCount = computed(() => Math.max(...filteredPyqs.value.map(item => item.asked)))
+const streak = computed(() => store.streak.value), quizzesDone = computed(() => store.quizzesDone.value), xp = computed(() => store.xp.value), mistakes = computed(() => store.mistakes.value), rank = computed(() => store.currentRank.value), remindersEnabled = computed(() => store.remindersEnabled.value), activeMistake = computed(() => store.mistakeDeck.value[revisionIndex.value]), activeQuestion = computed(() => quizQuestions[quizIndex.value]), rankPercent = computed(() => Math.max(1, Math.min(99, Math.floor(rank.value / 50 * 100)))), revisionMinutes = computed(() => Math.max(1, Math.ceil(mistakes.value / 2)))
+const todaysQuiz = { title: 'Business Laws – Contracts', meta: '3 Qs • 5 mins', xp: 150, progress: 0 }
+function startQuiz() { quizIndex.value = 0; selectedOption.value = ''; quizFeedback.value = ''; showQuiz.value = true }
+function closeQuiz() { showQuiz.value = false }
+function submitAnswer() { if (!quizFeedback.value) { isCorrect.value = selectedOption.value === activeQuestion.value.answer; quizFeedback.value = isCorrect.value ? 'Correct — great work!' : 'Saved to your Mistake Book with the ICAI explanation.'; if (!isCorrect.value) store.saveMistake(activeQuestion.value); return } if (quizIndex.value < quizQuestions.length - 1) { quizIndex.value++; selectedOption.value = ''; quizFeedback.value = '' } else { store.completeQuiz(todaysQuiz.xp); closeQuiz() } }
+function openRevision() { revisionIndex.value = 0; showRevision.value = true }
+function markRevised() { store.reviseMistake(activeMistake.value.id); if (revisionIndex.value >= store.mistakeDeck.value.length) revisionIndex.value = 0 }
+function toggleReminders() { store.setRemindersEnabled(!remindersEnabled.value) }
+async function shareRank() { const text = `I’m #${rank.value} in this week’s CA Streak League! Can you beat me?`; const url = `https://t.me/share/url?url=${encodeURIComponent('https://t.me/')}&text=${encodeURIComponent(text)}`; if (window.Telegram?.WebApp?.openTelegramLink) window.Telegram.WebApp.openTelegramLink(url); else if (navigator.share) await navigator.share({ text }); else { await navigator.clipboard?.writeText(text); shareMessage.value = 'Rank copied — paste it in Telegram.' } }
 </script>
+
+<style scoped>
+.metric-label { @apply mt-1 text-[10px] font-bold uppercase tracking-widest text-gray-400; } .metric-sub { @apply mt-1 text-[9px] font-semibold text-ca-600; } .filter-select { @apply h-10 min-w-0 rounded-xl border border-ca-100 bg-white px-2 text-[12px] font-semibold text-gray-700 outline-none; } .tag { @apply rounded-full border border-ca-100 bg-ca-50 px-2 py-1 text-[9px] font-bold text-ca-700; } .modal { @apply fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm sm:items-center; } .modal-card { @apply w-full max-w-[360px] rounded-[20px] bg-white p-6 shadow-2xl; } .answer { @apply mt-3 h-11 w-full rounded-xl border border-ca-100 bg-[#F9FFFB] px-4 text-left text-[13px] font-medium text-gray-800 transition hover:bg-ca-50; } .primary-btn { @apply mt-5 h-11 w-full rounded-xl bg-ca-600 text-[13px] font-bold text-white disabled:bg-gray-300; } .toggle { @apply h-7 w-12 rounded-full p-1 transition; } .toggle span { @apply block h-5 w-5 rounded-full bg-white shadow transition; }
+</style>
