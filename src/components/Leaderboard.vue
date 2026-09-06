@@ -1,7 +1,7 @@
 <template>
   <div class="p-5 pb-10">
     <div class="flex justify-between items-center">
-      <h2 class="jakarta text-[18px] font-bold">Leaderboard</h2>
+      <div><h2 class="jakarta text-[18px] font-bold">Streak League</h2><p class="text-[10px] text-gray-500 mt-0.5">30 CA students · resets every Monday</p></div>
       <div class="flex bg-ca-50 rounded-full p-1 border border-[#E5F7E9]">
         <button @click="period = 'weekly'" :class="period === 'weekly' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'"
           class="px-3 py-1 rounded-full text-[12px] font-semibold transition">Weekly</button>
@@ -16,6 +16,10 @@
         <p class="text-[11px] text-ca-600 mt-0.5">{{ xp }} XP • {{ quizzesDone }} quizzes • {{ streak }} day streak</p>
       </div>
       <span class="text-[12px] font-bold px-2.5 py-1 rounded-full bg-ca-600 text-white">#{{ userRank }}</span>
+    </div>
+
+    <div class="mt-3 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+      <span class="text-xl">🏅</span><p class="text-[11px] leading-4 text-amber-900"><strong>Top 3 win the CA Series Champion badge.</strong><br>Keep your streak alive to climb this week.</p>
     </div>
 
     <!-- Podium - dynamic based on period -->
