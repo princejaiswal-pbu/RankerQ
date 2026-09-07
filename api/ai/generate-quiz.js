@@ -1,93 +1,19 @@
-// /api/ai/generate-quiz.js - Vercel Serverless Function
-// Generates personalized CA quiz using Meta AI (Llama 3)
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-
-  const { subject, chapter, difficulty, count, level, mistakes } = req.body
-
-  // Build prompt for Llama
-  const weakAreas = mistakes?.slice(0, 5).map(m => `${m.subject} - ${m.chapter}: ${m.question}`).join('\n') || 'None'
-  
-  const prompt = `
-You are a CA Foundation/Intermediate expert. Generate ${count} MCQs for:
-- Subject: ${subject}
-- Chapter: ${chapter}
-- Level: ${level}
-- Difficulty: ${difficulty}
-- Student weak areas: ${weakAreas}
-
-Requirements:
-- Each question: ICAI pattern, ${difficulty} difficulty
-- 4 options, 1 correct
-- Include marks (2-5), times ICAI asked (1-5), year
-- Provide simple explanation + ICAI format explanation
-- Format as JSON array:
-[
-  {
-    "question": "...",
-    "options": ["A", "B", "C", "D"],
-    "correct": 0,
-    "marks": 3,
-    "timesAsked": 2,
-    "explanation": { "simple": "...", "icai": "..." }
-  }
-]
-
-Return ONLY JSON, no extra text.
-`
-
+  const { subject, topic, difficulty, count, level, mistakes = [], apiKey } = req.body || {}
+  const safeCount = Math.max(1, Math.min(15, Number.parseInt(count, 10) || 5))
+  if (!subject || !topic || !difficulty) return res.status(400).json({ error: 'Subject, topic, and difficulty are required.' })
+  const key = apiKey || process.env.GEMINI_API_KEY
+  if (!key) return res.status(503).json({ error: 'Add a Gemini API key in your profile to generate fresh quizzes.' })
+  const weakAreas = mistakes.slice(0, 5).map(m => `${m.subject}: ${m.question}`).join('\n') || 'None'
+  const prompt = `Create ${safeCount} fresh CA ${level || 'Foundation'} MCQs on ${subject}: ${topic}. Difficulty: ${difficulty}. Weak areas: ${weakAreas}. Return ONLY a JSON array. Each object must have question, options (exactly 4 strings), correct (0-3), marks (2-5), timesAsked (1-5), and explanation with simple and icai strings. Do not repeat questions.`
   try {
-    // Option 1: Meta AI API (if you have access)
-    // const response = await fetch('https://api.llama.meta.com/v1/chat/completions', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Authorization': `Bearer ${process.env.META_AI_API_KEY}`,
-    //     'Content-Type': 'application/json'
-    //   },
-    //   body: JSON.stringify({
-    //     model: 'llama3-70b',
-    //     messages: [{ role: 'user', content: prompt }],
-    //     temperature: 0.7
-    //   })
-    // })
-
-    // Option 2: OpenAI compatible (for demo, using Groq/OpenAI)
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama3-70b-8192',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 4000
-      })
-    })
-
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(key)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.9, responseMimeType: 'application/json' } }) })
     const data = await response.json()
-    let content = data.choices[0].message.content
-    
-    // Extract JSON
-    const jsonMatch = content.match(/\[.*\]/s)
-    if (jsonMatch) content = jsonMatch[0]
-    
-    const questions = JSON.parse(content)
-
-    res.status(200).json({ 
-      questions: questions.map((q, i) => ({
-        id: `ai-${Date.now()}-${i}`,
-        subject,
-        chapter,
-        ...q
-      })),
-      meta: { subject, chapter, difficulty, generatedBy: 'Meta AI Llama 3' }
-    })
-
-  } catch (error) {
-    console.error('AI Quiz generation error:', error)
-    res.status(500).json({ error: 'Failed to generate quiz', details: error.message })
-  }
+    if (!response.ok) throw new Error(data?.error?.message || `Gemini request failed (${response.status})`)
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+    const questions = JSON.parse(text)
+    if (!Array.isArray(questions) || !questions.length) throw new Error('Gemini returned no questions.')
+    res.status(200).json({ questions: questions.filter(q => Array.isArray(q.options) && q.options.length >= 4).slice(0, safeCount).map((q, index) => ({ id: `gemini-${Date.now()}-${index}`, subject, chapter: topic, ...q, options: q.options.slice(0, 4), correct: Number.isInteger(q.correct) && q.correct >= 0 && q.correct < 4 ? q.correct : 0, explanation: q.explanation || { simple: 'Review this concept.', icai: 'Refer to the ICAI module.' } })), meta: { subject, topic, difficulty, generatedBy: 'Gemini' } })
+  } catch (error) { res.status(500).json({ error: 'Could not generate a Gemini quiz.', details: error.message }) }
 }
