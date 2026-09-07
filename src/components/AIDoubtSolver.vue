@@ -1,1 +1,1 @@
-<template><div class='p-5'><h2>AIDoubtSolver.vue</h2><p>Component loaded - implement logic</p></div></template>
+<template><div class="p-5"><h2 class="font-black">AI Doubt Solver - Gemini</h2><p class="text-[12px] text-gray-500">Upload image → Gemini explains</p></div></template>
