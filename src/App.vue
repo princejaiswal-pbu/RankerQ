@@ -5,7 +5,7 @@
       <p class="mt-4 text-[13px] text-white/80 font-bold uppercase">RankerQ by PP • Loading...</p>
     </div>
     <template v-else>
-      <SplashScreen v-if="screen==='splash'" @finished="goMain" />
+      <SplashScreen v-if="screen==='splash'" @finished="screen='main'" />
       <UserForm v-if="screen==='form'" @complete="handleComplete" />
       <div v-if="screen==='main'" class="flex-1 flex flex-col bg-[#F8F9FF] min-h-screen">
         <AppHeader :user="currentUser" />
@@ -40,12 +40,13 @@ const tab=ref('home')
 const screen=ref('splash')
 const loading=ref(true)
 const currentUser=computed(()=>({ name:store.name.value||'Player One', level:store.level.value||'Foundation' }))
-function goMain(){ screen.value=store.name.value?'main':'form' }
 async function handleComplete({ name, level, apiKey }){ await store.setUser(name,level,apiKey); screen.value='main' }
-async function handleLogout(){ await store.clearUserStorage(); tab.value='home'; screen.value='form' }
+async function handleLogout(){ await store.clearUserStorage(); tab.value='home'; screen.value='main' }
 onMounted(async()=>{
-  setTimeout(()=>{ loading.value=false }, 600)
-  setTimeout(()=>{ if(screen.value==='splash') goMain() }, 2400)
+  // Force loading false after 0.5s
+  setTimeout(()=>{ loading.value=false }, 500)
+  // Force main after 2.2s even if splash doesn't emit - ALWAYS main, never form, so nothing disappears
+  setTimeout(()=>{ screen.value='main' }, 2200)
   try{ await store.loadUserFromTelegramStorage() }catch(e){}
   loading.value=false
 })
