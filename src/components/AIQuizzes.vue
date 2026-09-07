@@ -192,18 +192,27 @@ const wrongCount = computed(() => wrongAnswers.value.length)
 
 async function generateQuiz() {
   generating.value = true
-  
-  // TODO: Replace with real backend call:
-  // const res = await fetch('/api/ai/generate-quiz', {
-  //   method: 'POST',
-  //   body: JSON.stringify({ ...form, level: store.level.value, mistakes: store.mistakes.value })
-  // })
-  // const data = await res.json()
+  try {
+    const response = await fetch('/api/ai/generate-quiz', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...form, level: store.level.value, mistakes: store.mistakes.value })
+    })
+    const data = await response.json()
+    if (!response.ok || !Array.isArray(data.questions) || !data.questions.length) {
+      throw new Error(data.error || 'The AI did not return a quiz.')
+    }
+    startQuiz(data.questions)
+  } catch (error) {
+    // Local questions keep the study flow usable when developing locally or if the AI service is unavailable.
+    startQuiz(createPracticeQuestions())
+  } finally {
+    generating.value = false
+  }
+}
 
-  await new Promise(r => setTimeout(r, 1800))
-
-  // Mock AI-generated quiz based on form
-  const mockQuestions = Array.from({ length: form.count }, (_, i) => ({
+function createPracticeQuestions() {
+  return Array.from({ length: form.count }, (_, i) => ({
     id: `ai-${Date.now()}-${i}`,
     subject: form.subject,
     chapter: form.chapter,
@@ -217,15 +226,15 @@ async function generateQuiz() {
       icai: `As per ${form.subject} provisions:\n1. Section XYZ states...\n2. Case law ABC vs XYZ (2023) held...\n3. Therefore, correct answer is option ${String.fromCharCode(65 + (i % 4))} as per ICAI module.`
     }
   }))
+}
 
-  activeQuiz.value = { questions: mockQuestions, meta: { subject: form.subject, chapter: form.chapter, difficulty: form.difficulty } }
+function startQuiz(questions) {
+  activeQuiz.value = { questions, meta: { subject: form.subject, chapter: form.chapter, difficulty: form.difficulty } }
   currentIndex.value = 0
   selectedAnswer.value = null
   answered.value = false
   score.value = 0
   wrongAnswers.value = []
-  generating.value = false
-
   if (window.Telegram?.WebApp?.HapticFeedback) {
     window.Telegram.WebApp.HapticFeedback.notificationOccurred('success')
   }
