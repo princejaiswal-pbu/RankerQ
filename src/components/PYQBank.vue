@@ -1,0 +1,1 @@
+<template><ResourcesHub /></template><script setup>import ResourcesHub from './ResourcesHub.vue'</script>

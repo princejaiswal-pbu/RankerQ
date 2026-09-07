@@ -1,41 +1,14 @@
 <template>
-  <div class="ca-card overflow-hidden hover:shadow-card-hover transition-all duration-300">
-    <div class="h-1 w-full bg-gradient-to-r from-ca-500 to-ca-700"></div>
-    <div class="p-5">
-      <div class="flex justify-between items-start">
-        <div class="flex gap-3">
-          <div class="w-11 h-11 rounded-xl bg-ca-50 border border-ca-100 flex items-center justify-center text-lg">📝</div>
-          <div>
-            <p class="text-[11px] font-bold tracking-widest uppercase text-ca-700">Today's Quiz • Live</p>
-            <h3 class="jakarta font-bold text-[16px] text-gray-900 mt-0.5">{{ quiz.title }}</h3>
-            <p class="text-[12px] text-gray-500 mt-1">{{ quiz.meta }}</p>
-          </div>
-        </div>
-        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]">+{{ quiz.xp }} XP</span>
-      </div>
-
-      <div class="mt-4">
-        <div class="flex justify-between text-[11px] font-semibold text-gray-500 mb-1.5">
-          <span>Progress</span><span class="text-ca-700">60% completed</span>
-        </div>
-        <div class="h-2 rounded-full bg-ca-50 overflow-hidden">
-          <div class="h-full w-[60%] bg-ca-600 rounded-full transition-all duration-700"></div>
-        </div>
-      </div>
-
-      <button @click="$emit('start')" class="mt-4 w-full h-[44px] rounded-xl bg-ca-600 text-white font-semibold text-[14px] jakarta shadow-green active:scale-[0.98] transition">
-        {{ quiz.progress > 0 ? 'Continue Quiz →' : 'Start Now →' }}
-      </button>
+  <div class="bg-white rounded-[20px] border border-indigo-100 shadow-[0_8px_24px_rgba(79,70,229,0.08)] p-5 relative overflow-hidden group hover:shadow-[0_12px_32px_rgba(79,70,229,0.12)] transition-all">
+    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-600 via-purple-500 to-yellow-400"></div>
+    <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition"></div>
+    <div class="flex justify-between items-start relative z-10">
+      <div><p class="text-[10px] font-black tracking-widest uppercase text-indigo-600 flex items-center gap-1">🎯 Daily Quest • {{ quiz.meta }}</p><h3 class="jakarta font-black text-[16px] mt-1.5 text-gray-900 tracking-tight">{{ quiz.title }}</h3><p class="text-[11px] text-gray-500 mt-1">Lvl {{ Math.floor(Math.random()*3)+1 }} • Timer • Bookmark</p></div>
+      <span class="text-[11px] font-black px-2.5 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 text-black shadow">+{{ quiz.xp }} XP</span>
     </div>
+    <div class="mt-4 h-2.5 bg-gray-100 rounded-full overflow-hidden p-1 flex gap-1 relative z-10"><div class="flex-1 h-full bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full" :style="{width:quiz.progress+'%'}"></div><div class="flex-1 h-full bg-gray-200 rounded-full"></div></div>
+    <div class="mt-1 flex justify-between text-[10px] font-bold text-gray-400"><span>{{ quiz.progress }}% • Game Mode</span><span>⏱️ 60s/Q • 🔖 Save</span></div>
+    <button @click="$emit('start')" class="mt-4 w-full h-11 rounded-xl bg-gradient-to-r from-gray-900 via-indigo-900 to-gray-900 text-white font-black text-[13px] hover:from-black hover:to-indigo-900 transition relative z-10 shadow-[0_4px_16px_rgba(0,0,0,0.2)] tracking-wide">▶️ Play Quest → +{{ quiz.xp }} XP</button>
   </div>
 </template>
-
-<script setup>
-defineProps({
-  quiz: {
-    type: Object,
-    default: () => ({ title: 'Business Laws - Contracts', meta: '15 Qs • 20 mins', xp: 150, progress: 60 })
-  }
-})
-defineEmits(['start'])
-</script>
+<script setup> defineProps({ quiz:Object }); defineEmits(['start']) </script>

@@ -1,0 +1,1 @@
+export const icaiResourcesMeta={ lastUpdated:'2025-05-13', total:1248 }
