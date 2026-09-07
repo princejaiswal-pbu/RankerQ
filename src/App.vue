@@ -1,12 +1,16 @@
 <template>
   <div class="tg-app">
+    <!-- Initial Loading State -->
     <div v-if="loading" class="flex flex-col items-center justify-center bg-indigo-600 min-h-screen p-8">
       <div class="w-14 h-14 rounded-[20px] bg-white flex items-center justify-center text-indigo-600 font-black text-xl">RQ</div>
       <p class="mt-4 text-[13px] text-white/80 font-bold uppercase">RankerQ by PP • Loading...</p>
     </div>
+    
     <template v-else>
-      <SplashScreen v-if="screen==='splash'" @finished="screen='main'" />
+      <!-- Listen to the splash screen and dynamically handle navigation -->
+      <SplashScreen v-if="screen==='splash'" @finished="handleSplashFinished" />
       <UserForm v-if="screen==='form'" @complete="handleComplete" />
+      
       <div v-if="screen==='main'" class="flex-1 flex flex-col bg-[#F8F9FF] min-h-screen">
         <AppHeader :user="currentUser" />
         <main class="flex-1 overflow-y-auto" style="padding-bottom:90px;">
@@ -22,6 +26,7 @@
     </template>
   </div>
 </template>
+
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from './stores/useUserStore.js'
@@ -35,12 +40,44 @@ import AIQuizzes from './components/AIQuizzes.vue'
 import Bookmarks from './components/Bookmarks.vue'
 import StreakLeague from './components/StreakLeague.vue'
 import ProfileSection from './components/ProfileSection.vue'
-const store=useUserStore()
-const tab=ref('home')
-const screen=ref('splash')
-const loading=ref(true)
-const currentUser=computed(()=>({ name:store.name.value||'Player One', level:store.level.value||'Foundation' }))
-async function handleComplete({ name, level, apiKey }){ await store.setUser(name,level,apiKey); screen.value='main' }
-async function handleLogout(){ await store.clearUserStorage(); tab.value='home'; screen.value='form' }
-onMounted(async()=>{ await store.loadUserFromTelegramStorage(); loading.value=false; setTimeout(()=>{ if(screen.value==='splash') screen.value=store.name.value?'main':'form' }, 2000) })
+
+const store = useUserStore()
+const tab = ref('home')
+const screen = ref('splash')
+const loading = ref(true)
+
+// Added a fallback check to prevent undefined errors 
+// depending on whether the store uses Pinia or raw Composition API refs
+const currentUser = computed(() => ({ 
+  name: store.name?.value || store.name || 'Player One', 
+  level: store.level?.value || store.level || 'Foundation' 
+}))
+
+async function handleComplete({ name, level, apiKey }){ 
+  await store.setUser(name, level, apiKey)
+  screen.value = 'main' 
+}
+
+async function handleLogout(){ 
+  await store.clearUserStorage()
+  tab.value = 'home'
+  screen.value = 'form' 
+}
+
+// Replaces the conflicting timer and correctly handles the @finished event
+function handleSplashFinished() {
+  const hasName = store.name?.value || store.name
+  screen.value = hasName ? 'main' : 'form'
+}
+
+onMounted(async () => { 
+  try {
+    await store.loadUserFromTelegramStorage()
+  } catch (error) {
+    console.error('Failed to load user data:', error)
+  } finally {
+    // Ensuring this always runs so the app doesn't freeze on the loading screen
+    loading.value = false 
+  }
+})
 </script>
