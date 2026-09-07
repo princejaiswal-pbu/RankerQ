@@ -1,8 +1,9 @@
 <template>
   <div class="tg-app">
-    <div v-if="loading" class="flex flex-col items-center justify-center bg-indigo-600 min-h-screen p-8">
-      <div class="w-14 h-14 rounded-[20px] bg-white flex items-center justify-center text-indigo-600 font-black text-xl animate-pulse">RQ</div>
-      <p class="mt-4 text-[13px] text-white/80 font-bold uppercase">RankerQ by PP • Loading...</p>
+    <div v-if="loading" class="flex flex-col items-center justify-center bg-[#6C5CE7] min-h-screen p-8">
+      <div class="w-16 h-16 rounded-[24px] bg-white flex items-center justify-center text-[#6C5CE7] font-black text-2xl shadow-lg">RQ</div>
+      <p class="mt-5 jakarta font-black text-white text-[15px]">RankerQ by PP</p>
+      <p class="mt-2 text-[11px] text-white/70 font-bold uppercase tracking-widest">Game CA Prep • Loading...</p>
     </div>
     <template v-else>
       <SplashScreen v-if="screen==='splash'" @finished="screen='main'" />
@@ -10,7 +11,7 @@
       <div v-if="screen==='main'" class="flex-1 flex flex-col bg-[#F8F9FF] min-h-screen">
         <AppHeader :user="currentUser" />
         <main class="flex-1 overflow-y-auto" style="padding-bottom:90px;">
-          <HomeView v-if="tab==='home'" :user="currentUser" @goLeague="tab='league'" @goBookmarks="tab='bookmarks'" @goResources="tab='resources'" @goAIQuiz="tab='ai-quiz'" />
+          <HomeView v-if="tab==='home'" :user="currentUser" @goLeague="tab='league'" @goBookmarks="tab='bookmarks'" @goResources="tab='resources'" @goAIQuiz="tab='ai-quiz'" @goPYQ="tab='resources'" />
           <ResourcesHub v-if="tab==='resources'" />
           <AIQuizzes v-if="tab==='ai-quiz'" />
           <Bookmarks v-if="tab==='bookmarks'" />
@@ -43,10 +44,8 @@ const currentUser=computed(()=>({ name:store.name.value||'Player One', level:sto
 async function handleComplete({ name, level, apiKey }){ await store.setUser(name,level,apiKey); screen.value='main' }
 async function handleLogout(){ await store.clearUserStorage(); tab.value='home'; screen.value='main' }
 onMounted(async()=>{
-  // Force loading false after 0.5s
-  setTimeout(()=>{ loading.value=false }, 500)
-  // Force main after 2.2s even if splash doesn't emit - ALWAYS main, never form, so nothing disappears
-  setTimeout(()=>{ screen.value='main' }, 2200)
+  setTimeout(()=>{ loading.value=false }, 600)
+  setTimeout(()=>{ screen.value='main' }, 2400)
   try{ await store.loadUserFromTelegramStorage() }catch(e){}
   loading.value=false
 })
