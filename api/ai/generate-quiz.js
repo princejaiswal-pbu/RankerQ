@@ -1,31 +1,93 @@
-// /api/ai/generate-quiz-gemini.js - Vercel Serverless - Fresh Gemini Quizzes for RankerQ by PP
+// /api/ai/generate-quiz.js - Vercel Serverless Function
+// Generates personalized CA quiz using Meta AI (Llama 3)
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-  const { topic, difficulty, count, timePerQ, apiKey: clientApiKey } = req.body
-  const apiKey = clientApiKey || process.env.GEMINI_API_KEY
-  if (!apiKey) return res.status(400).json({ error: 'No Gemini API key. Add in profile or set GEMINI_API_KEY env. Get free at aistudio.google.com' })
 
-  const prompt = `You are RankerQ by PP - CA exam game quest generator. Generate ${count} FRESH, UNIQUE, HIGH-QUALITY MCQs for topic: "${topic}". Difficulty: ${difficulty}. Time per Q: ${timePerQ}. 
+  const { subject, chapter, difficulty, count, level, mistakes } = req.body
+
+  // Build prompt for Llama
+  const weakAreas = mistakes?.slice(0, 5).map(m => `${m.subject} - ${m.chapter}: ${m.question}`).join('\n') || 'None'
+  
+  const prompt = `
+You are a CA Foundation/Intermediate expert. Generate ${count} MCQs for:
+- Subject: ${subject}
+- Chapter: ${chapter}
+- Level: ${level}
+- Difficulty: ${difficulty}
+- Student weak areas: ${weakAreas}
+
 Requirements:
-- Each question must be UNIQUE, not repeated, fresh
-- CA Foundation/Intermediate level, ICAI pattern
-- 4 options, 1 correct index 0-3
-- marks 2-5, timesAsked 1-5
-- explanation simple (easy language) + icai (ICAI module format)
-- Game style: make it engaging
-- Return ONLY valid JSON array: [{"question":"...","options":["A","B","C","D"],"correct":0,"marks":3,"timesAsked":2,"explanation":{"simple":"...","icai":"..."}}]
-No extra text.`
+- Each question: ICAI pattern, ${difficulty} difficulty
+- 4 options, 1 correct
+- Include marks (2-5), times ICAI asked (1-5), year
+- Provide simple explanation + ICAI format explanation
+- Format as JSON array:
+[
+  {
+    "question": "...",
+    "options": ["A", "B", "C", "D"],
+    "correct": 0,
+    "marks": 3,
+    "timesAsked": 2,
+    "explanation": { "simple": "...", "icai": "..." }
+  }
+]
+
+Return ONLY JSON, no extra text.
+`
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents:[{ parts:[{ text:prompt }] }], generationConfig:{ temperature:0.9, maxOutputTokens:4000, responseMimeType:'application/json' } })
+    // Option 1: Meta AI API (if you have access)
+    // const response = await fetch('https://api.llama.meta.com/v1/chat/completions', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Authorization': `Bearer ${process.env.META_AI_API_KEY}`,
+    //     'Content-Type': 'application/json'
+    //   },
+    //   body: JSON.stringify({
+    //     model: 'llama3-70b',
+    //     messages: [{ role: 'user', content: prompt }],
+    //     temperature: 0.7
+    //   })
+    // })
+
+    // Option 2: OpenAI compatible (for demo, using Groq/OpenAI)
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama3-70b-8192',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 4000
+      })
     })
+
     const data = await response.json()
-    if (data.error) return res.status(500).json({ error:'Gemini API error', details:data.error })
-    let content=data.candidates?.[0]?.content?.parts?.[0]?.text||'[]'
-    const m=content.match(/\[.*\]/s); if(m) content=m[0]
-    const questions=JSON.parse(content)
-    res.status(200).json({ questions: questions.map((q,i)=>({ id:`gemini-${Date.now()}-${i}`, subject:'Gemini', topic, ...q })), meta:{ topic, difficulty, fresh:true, generatedBy:'Gemini 1.5 Flash - RankerQ by PP' } })
-  } catch(e){ res.status(500).json({ error:'Failed to generate fresh quest with Gemini', details:e.message }) }
+    let content = data.choices[0].message.content
+    
+    // Extract JSON
+    const jsonMatch = content.match(/\[.*\]/s)
+    if (jsonMatch) content = jsonMatch[0]
+    
+    const questions = JSON.parse(content)
+
+    res.status(200).json({ 
+      questions: questions.map((q, i) => ({
+        id: `ai-${Date.now()}-${i}`,
+        subject,
+        chapter,
+        ...q
+      })),
+      meta: { subject, chapter, difficulty, generatedBy: 'Meta AI Llama 3' }
+    })
+
+  } catch (error) {
+    console.error('AI Quiz generation error:', error)
+    res.status(500).json({ error: 'Failed to generate quiz', details: error.message })
+  }
 }
