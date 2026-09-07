@@ -4,13 +4,16 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { subject, chapter, difficulty, count, level, mistakes } = req.body
+  const { subject, chapter, difficulty, count, level, mistakes = [] } = req.body || {}
+  const safeCount = Math.max(1, Math.min(15, Number.parseInt(count, 10) || 5))
+  if (!subject || !chapter || !difficulty) return res.status(400).json({ error: 'Subject, chapter, and difficulty are required.' })
+  if (!process.env.GROQ_API_KEY) return res.status(503).json({ error: 'AI quiz generation is not configured. Add GROQ_API_KEY to your deployment environment.' })
 
   // Build prompt for Llama
   const weakAreas = mistakes?.slice(0, 5).map(m => `${m.subject} - ${m.chapter}: ${m.question}`).join('\n') || 'None'
   
   const prompt = `
-You are a CA Foundation/Intermediate expert. Generate ${count} MCQs for:
+You are a CA Foundation/Intermediate expert. Generate ${safeCount} accurate MCQs for:
 - Subject: ${subject}
 - Chapter: ${chapter}
 - Level: ${level}
@@ -60,7 +63,7 @@ Return ONLY JSON, no extra text.
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama3-70b-8192',
+        model: 'llama-3.3-70b-versatile',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.7,
         max_tokens: 4000
@@ -68,20 +71,26 @@ Return ONLY JSON, no extra text.
     })
 
     const data = await response.json()
-    let content = data.choices[0].message.content
+    if (!response.ok) throw new Error(data?.error?.message || `Groq request failed (${response.status})`)
+    let content = data?.choices?.[0]?.message?.content
+    if (!content) throw new Error('Groq returned an empty response.')
     
     // Extract JSON
     const jsonMatch = content.match(/\[.*\]/s)
     if (jsonMatch) content = jsonMatch[0]
     
     const questions = JSON.parse(content)
+    if (!Array.isArray(questions) || questions.length === 0) throw new Error('The AI response did not contain questions.')
 
     res.status(200).json({ 
       questions: questions.map((q, i) => ({
         id: `ai-${Date.now()}-${i}`,
         subject,
         chapter,
-        ...q
+        ...q,
+        options: Array.isArray(q.options) ? q.options.slice(0, 4) : [],
+        correct: Number.isInteger(q.correct) && q.correct >= 0 && q.correct < 4 ? q.correct : 0,
+        explanation: q.explanation || { simple: 'Review the relevant ICAI module.', icai: 'Refer to the applicable provision.' }
       })),
       meta: { subject, chapter, difficulty, generatedBy: 'Meta AI Llama 3' }
     })
