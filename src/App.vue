@@ -11,7 +11,7 @@
       <div v-if="store.screen.value==='main'" class="flex-1 flex flex-col bg-[#F8F9FF] min-h-screen relative">
         <AppHeader :user="currentUser" />
         <main class="flex-1 overflow-y-auto scrollbar-hide" style="padding-bottom:90px;">
-          <HomeView v-if="tab==='home'" :user="currentUser" @goLeague="tab='league'" @goBookmarks="tab='bookmarks'" @goAIQuiz="tab='ai-quiz'" />
+          <HomeView v-if="tab==='home'" :user="currentUser" @goLeague="tab='league'" @goBookmarks="tab='bookmarks'" @goResources="tab='resources'" @goAIQuiz="tab='ai-quiz'" />
           <PYQBank v-if="tab==='resources'" />
           <AIQuizzes v-if="tab==='ai-quiz'" />
           <Bookmarks v-if="tab==='bookmarks'" />
