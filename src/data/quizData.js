@@ -1,1 +1,1 @@
-export const quizData=[]
+export const quizData = []

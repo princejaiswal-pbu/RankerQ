@@ -1,1 +1,1 @@
-export const pyqData=[]
+export const pyqData = []
