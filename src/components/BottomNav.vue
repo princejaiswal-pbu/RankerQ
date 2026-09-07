@@ -19,9 +19,9 @@ defineEmits(['change'])
 const store=useUserStore()
 const tabs=computed(()=>[
   { id:'home', label:'Home', icon:'🏠' },
-  { id:'pyq', label:'PYQ', icon:'📚' },
+  { id:'resources', label:'Resources', icon:'📚' },
   { id:'ai-quiz', label:'AI Quiz', icon:'✨' },
-  { id:'mistakes', label:'Mistakes', icon:'📝', badge: store.mistakeCount.value>0?store.mistakeCount.value:null },
+  { id:'bookmarks', label:'Saved', icon:'🔖', badge: store.mistakeCount.value>0?store.mistakeCount.value:null },
   { id:'profile', label:'You', icon:'👤' },
 ])
 </script>

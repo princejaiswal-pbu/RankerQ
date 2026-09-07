@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 
 const name = ref('')
 const level = ref('')
+const geminiKey = ref('')
 const screen = ref('splash')
 const isLoaded = ref(false)
 const streak = ref(0)
@@ -54,7 +55,7 @@ function clearMistakes(){ mistakes.value=[]; saveItem('ca_mistakes',[]) }
 
 export async function saveUserToTelegramStorage(userName,userLevel){
   const data={ name:userName, level:userLevel, timestamp:Date.now(), streak:streak.value, quizzes:quizzesDone.value, xp:xp.value, mistakes:mistakes.value }
-  localStorage.setItem('ca_name',userName); localStorage.setItem('ca_level',userLevel)
+  localStorage.setItem('ca_name',userName); localStorage.setItem('ca_level',userLevel); localStorage.setItem('rankerq_gemini_key', geminiKey.value)
   localStorage.setItem('ca_user',JSON.stringify(data)); localStorage.setItem('ca_streak',String(streak.value))
   localStorage.setItem('ca_quizzes',String(quizzesDone.value)); localStorage.setItem('ca_xp',String(xp.value))
   localStorage.setItem('ca_mistakes',JSON.stringify(mistakes.value))
@@ -71,7 +72,8 @@ export async function saveUserToTelegramStorage(userName,userLevel){
 
 export async function loadUserFromTelegramStorage(){
   const cloud=getCloudStorage()
-  const localName=localStorage.getItem('ca_name'), localLevel=localStorage.getItem('ca_level')
+  const localName=localStorage.getItem('ca_name'), localLevel=localStorage.getItem('ca_level'), localGeminiKey=localStorage.getItem('rankerq_gemini_key')||''
+  geminiKey.value=localGeminiKey
   const localStreak=parseInt(localStorage.getItem('ca_streak')||'0'), localQuizzes=parseInt(localStorage.getItem('ca_quizzes')||'0')
   const localXp=parseInt(localStorage.getItem('ca_xp')||'0'), localLast=localStorage.getItem('ca_last_login')
   const localMistakes=getItemLocal('ca_mistakes',true)||[]
@@ -104,8 +106,8 @@ export async function loadUserFromTelegramStorage(){
 export async function clearUserStorage(){
   localStorage.removeItem('ca_name'); localStorage.removeItem('ca_level'); localStorage.removeItem('ca_user')
   localStorage.removeItem('ca_streak'); localStorage.removeItem('ca_last_login'); localStorage.removeItem('ca_quizzes')
-  localStorage.removeItem('ca_xp'); localStorage.removeItem('ca_mistakes')
-  name.value=''; level.value=''; streak.value=0; quizzesDone.value=0; xp.value=0; lastLogin.value=''; mistakes.value=[]; screen.value='form'
+  localStorage.removeItem('ca_xp'); localStorage.removeItem('ca_mistakes'); localStorage.removeItem('rankerq_gemini_key')
+  name.value=''; level.value=''; geminiKey.value=''; streak.value=0; quizzesDone.value=0; xp.value=0; lastLogin.value=''; mistakes.value=[]; screen.value='form'
   const cloud=getCloudStorage()
   if(cloud) cloud.removeItems(['ca_name','ca_level','ca_user','ca_streak','ca_last_login','ca_quizzes','ca_xp','ca_mistakes'],()=>{})
 }
@@ -115,10 +117,10 @@ export function useUserStore(){
   const unreadCount=computed(()=>notifications.value.filter(n=>!n.read).length)
   const currentRank=computed(()=>Math.max(1,50-Math.floor(xp.value/300)))
   const mistakeCount=computed(()=>mistakes.value.length), revisionTime=computed(()=>Math.ceil(mistakes.value.length*0.5))
-  async function setUser(n,l){ name.value=n; level.value=l; if(streak.value===0){ streak.value=1; lastLogin.value=getTodayString() } await saveUserToTelegramStorage(n,l); screen.value='main' }
-  async function updateUser(n,l){ name.value=n; level.value=l; await saveUserToTelegramStorage(n,l) }
+  async function setUser(n,l,key=''){ name.value=n; level.value=l; geminiKey.value=key.trim(); if(streak.value===0){ streak.value=1; lastLogin.value=getTodayString() } await saveUserToTelegramStorage(n,l); screen.value='main' }
+  async function updateUser(n,l,key=geminiKey.value){ name.value=n; level.value=l; geminiKey.value=key.trim(); await saveUserToTelegramStorage(n,l) }
   function completeQuiz(xpEarned=150, wrongAnswers=[]){ quizzesDone.value+=1; xp.value+=xpEarned; wrongAnswers.forEach(q=>addMistake(q)); calculateStreak(); saveItem('ca_quizzes',String(quizzesDone.value)); saveItem('ca_xp',String(xp.value)); saveUserToTelegramStorage(name.value,level.value); if(window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.notificationOccurred('success') }
   function markAllNotificationsRead(){ notifications.value=notifications.value.map(n=>({...n,read:true})) }
   function markNotificationRead(id){ const f=notifications.value.find(n=>n.id===id); if(f) f.read=true }
-  return { name,level,screen,isLoaded,streak,quizzesDone,xp,lastLogin,notifications,unreadCount,currentRank,mistakes,mistakeCount,revisionTime,userName,userLevel,isOnboarded,setUser,updateUser,completeQuiz,addMistake,removeMistake,markMistakeRevised,clearMistakes,loadUserFromTelegramStorage,saveUserToTelegramStorage,clearUserStorage,calculateStreak,markAllNotificationsRead,markNotificationRead }
+  return { name,level,geminiKey,screen,isLoaded,streak,quizzesDone,xp,lastLogin,notifications,unreadCount,currentRank,mistakes,mistakeCount,revisionTime,userName,userLevel,isOnboarded,setUser,updateUser,completeQuiz,addMistake,removeMistake,markMistakeRevised,clearMistakes,loadUserFromTelegramStorage,saveUserToTelegramStorage,clearUserStorage,calculateStreak,markAllNotificationsRead,markNotificationRead }
 }

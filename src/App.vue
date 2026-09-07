@@ -10,10 +10,10 @@
       <div v-if="store.screen.value==='main'" class="flex-1 flex flex-col bg-[#F6FFF8] min-h-screen relative">
         <AppHeader :user="currentUser" />
         <main class="flex-1 overflow-y-auto scrollbar-hide" style="padding-bottom:88px;">
-          <HomeView v-if="tab==='home'" :user="currentUser" @goLeague="tab='league'" @goMistakes="tab='mistakes'" @goPYQ="tab='pyq'" @goAIQuiz="tab='ai-quiz'" />
-          <PYQBank v-if="tab==='pyq'" />
+          <HomeView v-if="tab==='home'" :user="currentUser" @goLeague="tab='league'" @goMistakes="tab='bookmarks'" @goAIQuiz="tab='ai-quiz'" />
+          <PYQBank v-if="tab==='resources'" />
           <AIQuizzes v-if="tab==='ai-quiz'" />
-          <MistakeBook v-if="tab==='mistakes'" />
+          <MistakeBook v-if="tab==='bookmarks'" />
           <StreakLeague v-if="tab==='league'" />
           <ProfileSection v-if="tab==='profile'" :user="currentUser" @logout="handleLogout" />
         </main>
@@ -41,7 +41,7 @@ const tab=ref('home')
 const currentUser=computed(()=>({ name:store.name.value||'Ananya Sharma', level:store.level.value||'Foundation', id:'8472' }))
 function handleTabChange(t){ tab.value=t; if(window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.selectionChanged() }
 function handleSplashFinish(){ if(store.name.value) store.screen.value='main'; else store.screen.value='form' }
-async function handleComplete({ name, level }){ await store.setUser(name,level) }
+async function handleComplete({ name, level, geminiKey }){ await store.setUser(name,level,geminiKey) }
 async function handleLogout(){
   const doClear=async()=>{ await store.clearUserStorage(); tab.value='home' }
   if(window.Telegram?.WebApp?.showConfirm){ window.Telegram.WebApp.showConfirm('Clear saved data?', async(c)=>{ if(c) await doClear() }) } else { if(confirm('Clear saved data?')) await doClear() }

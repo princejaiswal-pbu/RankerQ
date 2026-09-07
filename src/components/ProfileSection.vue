@@ -35,7 +35,7 @@
       </div>
 
       <button @click="handleLogout" class="mt-5 w-full h-[44px] rounded-xl border border-red-200 bg-red-50 text-red-600 font-semibold text-[13px] hover:bg-red-100 transition">Clear Data & Log out</button>
-      <p class="mt-3 text-center text-[11px] text-gray-400">v2.0.0 • Telegram CloudStorage • {{ streak }} day streak • AI Quizzes by Meta AI</p>
+      <p class="mt-3 text-center text-[11px] text-gray-400">v2.0.0 • {{ streak }} day streak • AI Quizzes by Gemini</p>
     </div>
 
     <div v-if="showEdit" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" @click.self="showEdit=false">
@@ -46,6 +46,9 @@
           <input v-model="editForm.name" placeholder="Your name" class="mt-2 w-full h-[48px] px-4 rounded-xl bg-[#F9FFFB] border border-[#D1FAE5] focus:border-ca-600 focus:ring-4 focus:ring-ca-100 outline-none text-[15px] font-medium" />
           <label class="mt-4 block text-[11px] font-bold tracking-widest uppercase text-gray-400">CA Level</label>
           <div class="mt-2 grid grid-cols-2 gap-2"><button @click="editForm.level='Foundation'" :class="editForm.level==='Foundation'?'bg-ca-600 text-white border-ca-600':'bg-white border-[#E5F7E9] text-gray-700'" class="h-12 rounded-xl border font-semibold text-[13px] transition">Foundation</button><button @click="editForm.level='Intermediate'" :class="editForm.level==='Intermediate'?'bg-ca-600 text-white border-ca-600':'bg-white border-[#E5F7E9] text-gray-700'" class="h-12 rounded-xl border font-semibold text-[13px] transition">Intermediate</button></div>
+          <label class="mt-4 block text-[11px] font-bold tracking-widest uppercase text-gray-400">Gemini API Key</label>
+          <input v-model="editForm.geminiKey" type="password" placeholder="AIza..." class="mt-2 w-full h-[48px] px-4 rounded-xl bg-[#F9FFFB] border border-[#D1FAE5] focus:border-ca-600 outline-none text-[14px]" />
+          <p class="mt-2 text-[10px] text-gray-400">This key enables fresh Gemini-generated quizzes.</p>
           <button @click="saveEdit" :disabled="!editForm.name.trim()" :class="editForm.name.trim()?'bg-ca-600 text-white shadow-green':'bg-gray-200 text-gray-400'" class="mt-6 w-full h-[48px] rounded-xl font-semibold jakarta text-[14px] transition active:scale-[0.98]">{{ saving?'Saving...':'Save Changes' }}</button>
         </div>
       </div>
@@ -59,12 +62,12 @@ const props=defineProps({ user:Object })
 const emit=defineEmits(['logout'])
 const store=useUserStore()
 const showEdit=ref(false), saving=ref(false)
-const editForm=reactive({ name:'', level:'' })
+const editForm=reactive({ name:'', level:'', geminiKey:'' })
 const streak=computed(()=>store.streak.value), quizzesDone=computed(()=>store.quizzesDone.value), xp=computed(()=>store.xp.value)
 const rank=computed(()=>store.currentRank.value), rankPercent=computed(()=>Math.max(1,Math.min(99,Math.floor((rank.value/50)*100))))
 const accuracy=computed(()=>quizzesDone.value>0?Math.min(98,75+Math.floor(quizzesDone.value*1.5)):0)
-function openEdit(){ editForm.name=props.user.name; editForm.level=props.user.level; showEdit.value=true }
-async function saveEdit(){ if(!editForm.name.trim()) return; saving.value=true; await store.updateUser(editForm.name.trim(),editForm.level); saving.value=false; showEdit.value=false }
+function openEdit(){ editForm.name=props.user.name; editForm.level=props.user.level; editForm.geminiKey=store.geminiKey.value; showEdit.value=true }
+async function saveEdit(){ if(!editForm.name.trim()) return; saving.value=true; await store.updateUser(editForm.name.trim(),editForm.level,editForm.geminiKey); saving.value=false; showEdit.value=false }
 function openLinkedIn(e){ if(window.Telegram?.WebApp?.openLink){ e.preventDefault(); window.Telegram.WebApp.openLink('https://www.linkedin.com/in/prince-jaiswal-ca') } }
 function handleLogout(){ emit('logout') }
 </script>
