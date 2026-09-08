@@ -1,42 +1,52 @@
-# RankerQ by PP v2.1 - Game CA Prep
+# CA Series - Telegram Mini App
 
-## Features
-- 🎮 Game UI: XP, Levels, Streak, League
-- ✨ AI Quests: Gemini AI fresh quizzes (textbox topic + timer + bookmark + finish + result)
-- 📦 Auto Resources Hub: RTP 312 + MTP 294 + PYQ 642 = 1,248 papers, all attempts, all subjects, auto-updated daily
-- 🔖 Bookmarks: Save questions for revision
-- 🔑 Gemini API Key: Add in profile/login for real fresh quizzes
+Light green + white professional theme for CA Foundation / Intermediate students.
 
-## Structure - Only Essential Files (18 files)
+## Tech Stack
+- Vue 3 (Composition API) + Vite
+- Tailwind CSS
+- Telegram WebApp SDK
+
+## Project Structure
 ```
-src/
-  App.vue (main router)
-  main.js
-  assets/style.css
-  stores/useUserStore.js (game state + bookmarks + API key)
-  components/
-    AppHeader.vue (RankerQ by PP + Lvl)
-    BottomNav.vue (Home | Resources | AI Quiz | Saved | You)
-    SplashScreen.vue
-    UserForm.vue (name + level + API key)
-    AIQuizzes.vue (textbox + timer + bookmark + finish + result + Gemini fixed Qs)
-    ResourcesHub.vue (auto RTP/MTP/PYQ Hub)
-    PYQBank.vue (wrapper to ResourcesHub)
-    Bookmarks.vue (saved quests)
-    ProfileSection.vue (edit + API key + streak)
-    StreakLeague.vue (Gold League)
-  views/
-    HomeView.vue (minimal guaranteed visible, no daily quest)
-api/
-  ai/generate-quiz.js (Gemini 1.5 Flash)
-  resources/list.js (auto resources API)
+/src
+  /components
+    SplashScreen.vue   - Splash with logo + loader
+    UserForm.vue       - Name + Level dropdown (Foundation/Intermediate)
+    AppHeader.vue      - Top bar with level badge
+    BottomNav.vue      - Home / Rank / Doubts / You
+    QuizCard.vue       - Today's quiz card
+    DoubtsCard.vue     - Full doubts view with filter
+    Leaderboard.vue    - Podium + list
+    ProfileSection.vue - Avatar, stats, menu
+  /views
+    HomeView.vue       - Greeting + stats + cards
+  /stores
+    useUserStore.js    - LocalStorage user persistence
+  /assets
+    style.css          - Tailwind + custom
+  App.vue              - Root router (splash -> form -> main)
+  main.js              - Telegram init
 ```
 
-## Run
+## Setup
+```bash
 npm install
-npm run dev
-Build: npm run build
-Deploy: Vercel
+npm run dev   # http://localhost:3000
+```
 
-## Auto Resources
-Daily scraper at 6 AM IST: scripts/scrape-icai.js scrapes ICAI.org, auto-tags with Gemini, saves to R2/S3, Telegram bot alert.
+## Telegram Mini App Integration
+1. Host build (`npm run build`) on your domain
+2. In BotFather: /newapp -> set URL to hosted link
+3. The app auto calls `Telegram.WebApp.ready()` and `expand()`
+
+## Features Covered
+- ✅ Splash Screen (2.5s auto + tap to skip)
+- ✅ User Form (name + dropdown level)
+- ✅ Quiz Card (progress, XP, CTA)
+- ✅ Doubts Card (ask + list + status)
+- ✅ Leaderboard (weekly/monthly, podium, current user)
+- ✅ Profile Section (stats, menu)
+- ✅ Bottom nav with Telegram blur style
+
+Theme: light green #F0FDF4 bg, #16A34A primary, white cards, soft shadows.
