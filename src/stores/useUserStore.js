@@ -82,46 +82,55 @@ export async function saveUserToTelegramStorage(userName,userLevel,apiKey=''){
   })
 }
 
-export async function loadUserFromTelegramStorage(){
+export async function loadUserFromTelegramStorage(options={}){
+  const timeoutMs = Number.isFinite(options.timeoutMs) ? options.timeoutMs : 1800
   const cloud=getCloudStorage()
   const localName=localStorage.getItem('rq_name')||localStorage.getItem('ca_name')
   const localLevel=localStorage.getItem('rq_level')||localStorage.getItem('ca_level')
   const localApiKey=localStorage.getItem('rq_api_key')||''
-  const localStreak=parseInt(localStorage.getItem('rq_streak')||localStorage.getItem('ca_streak')||'0')
-  const localQuizzes=parseInt(localStorage.getItem('rq_quizzes')||localStorage.getItem('ca_quizzes')||'0')
-  const localXp=parseInt(localStorage.getItem('rq_xp')||localStorage.getItem('ca_xp')||'0')
-  const localLast=localStorage.getItem('rq_last_login')||localStorage.getItem('ca_last_login')
+  const localStreak=parseInt(localStorage.getItem('rq_streak')||localStorage.getItem('ca_streak')||'0')||0
+  const localQuizzes=parseInt(localStorage.getItem('rq_quizzes')||localStorage.getItem('ca_quizzes')||'0')||0
+  const localXp=parseInt(localStorage.getItem('rq_xp')||localStorage.getItem('ca_xp')||'0')||0
+  const localLast=localStorage.getItem('rq_last_login')||localStorage.getItem('ca_last_login')||''
   const localMistakes=getItemLocal('rq_mistakes',true)||getItemLocal('ca_mistakes',true)||[]
   const localBookmarks=getItemLocal('rq_bookmarks',true)||[]
-  if(localStreak) streak.value=localStreak
-  if(localQuizzes) quizzesDone.value=localQuizzes
-  if(localXp) xp.value=localXp
-  if(localLast) lastLogin.value=localLast
-  if(localMistakes.length) mistakes.value=localMistakes
-  if(localBookmarks.length) bookmarks.value=localBookmarks
+
+  streak.value=localStreak; quizzesDone.value=localQuizzes; xp.value=localXp
+  lastLogin.value=localLast; mistakes.value=localMistakes; bookmarks.value=localBookmarks
   if(localApiKey) geminiApiKey.value=localApiKey
-  if(!cloud){
-    if(localName&&localLevel){ name.value=localName; level.value=localLevel; screen.value='main'; calculateStreak() } else screen.value='splash'
-    isLoaded.value=true; return
+
+  const useLocal = () => {
+    if(localName && localLevel){
+      name.value=localName; level.value=localLevel; screen.value='main'; calculateStreak()
+    } else {
+      screen.value='splash'
+    }
+    isLoaded.value=true
   }
-  return new Promise(res=>{
-    cloud.getItems(['rq_name','rq_level','rq_api_key','rq_user','rq_streak','rq_last_login','rq_quizzes','rq_xp','rq_mistakes','rq_bookmarks'],(err,values)=>{
-      if(err||!values.rq_name){
-        if(localName){ name.value=localName; level.value=localLevel; screen.value='main'; calculateStreak() } else screen.value='splash'
-        isLoaded.value=true; res(); return
-      }
-      name.value=values.rq_name; level.value=values.rq_level; geminiApiKey.value=values.rq_api_key||localApiKey||''
-      streak.value=parseInt(values.rq_streak||localStreak||'1')
-      quizzesDone.value=parseInt(values.rq_quizzes||localQuizzes||'0')
-      xp.value=parseInt(values.rq_xp||localXp||'0')
-      lastLogin.value=values.rq_last_login||''
-      try{ mistakes.value=JSON.parse(values.rq_mistakes||'[]') }catch{ mistakes.value=localMistakes }
-      try{ bookmarks.value=JSON.parse(values.rq_bookmarks||'[]') }catch{ bookmarks.value=localBookmarks }
-      screen.value='main'; calculateStreak(); isLoaded.value=true; res()
-    })
+
+  if(!cloud){ useLocal(); return }
+
+  // CloudStorage callbacks can hang in previews, browsers, or Telegram edge cases.
+  // Fail open to local state so the app can never be trapped behind the splash.
+  let settled=false
+  const finish=()=>{ if(!settled){ settled=true; isLoaded.value=true } }
+  const timer=setTimeout(()=>{ useLocal(); finish() }, timeoutMs)
+
+  cloud.getItems(['rq_name','rq_level','rq_api_key','rq_user','rq_streak','rq_last_login','rq_quizzes','rq_xp','rq_mistakes','rq_bookmarks'],(err,values={})=>{
+    if(settled) return
+    clearTimeout(timer)
+    if(err || !values.rq_name){ useLocal(); finish(); return }
+    name.value=values.rq_name; level.value=values.rq_level||localLevel||''
+    geminiApiKey.value=values.rq_api_key||localApiKey||''
+    streak.value=parseInt(values.rq_streak||localStreak||'1')||1
+    quizzesDone.value=parseInt(values.rq_quizzes||localQuizzes||'0')||0
+    xp.value=parseInt(values.rq_xp||localXp||'0')||0
+    lastLogin.value=values.rq_last_login||localLast||''
+    try{ mistakes.value=JSON.parse(values.rq_mistakes||'[]') }catch{ mistakes.value=localMistakes }
+    try{ bookmarks.value=JSON.parse(values.rq_bookmarks||'[]') }catch{ bookmarks.value=localBookmarks }
+    screen.value='main'; calculateStreak(); finish()
   })
 }
-
 export async function clearUserStorage(){
   localStorage.removeItem('rq_name'); localStorage.removeItem('rq_level'); localStorage.removeItem('rq_api_key'); localStorage.removeItem('rq_user')
   localStorage.removeItem('rq_streak'); localStorage.removeItem('rq_last_login'); localStorage.removeItem('rq_quizzes')

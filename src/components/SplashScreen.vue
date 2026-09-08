@@ -10,7 +10,9 @@
   </div>
 </template>
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, onBeforeUnmount } from 'vue'
 const emit=defineEmits(['finished'])
-onMounted(()=>{ setTimeout(()=>emit('finished'),2200) })
+let timer
+onMounted(()=>{ timer=setTimeout(()=>emit('finished'),1500) })
+onBeforeUnmount(()=>clearTimeout(timer))
 </script>

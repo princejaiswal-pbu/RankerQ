@@ -1,12 +1,6 @@
 <template>
   <div class="tg-app">
-    <div v-if="!store.isLoaded.value" class="flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-800 min-h-screen p-8">
-      <div class="w-14 h-14 rounded-[20px] bg-white flex items-center justify-center text-indigo-600 font-black text-xl shadow-xl animate-pulse">RQ</div>
-      <p class="mt-4 text-[13px] text-white/80 font-bold tracking-widest uppercase">RankerQ by PP • Loading Game...</p>
-      <div class="mt-4 w-8 h-8 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
-    </div>
-    <template v-else>
-      <SplashScreen v-if="store.screen.value==='splash'" @finished="handleSplashFinish" />
+    <SplashScreen v-if="store.screen.value==='splash'" @finished="handleSplashFinish" />
       <UserForm v-if="store.screen.value==='form'" @complete="handleComplete" />
       <div v-if="store.screen.value==='main'" class="flex-1 flex flex-col bg-[#F8F9FF] min-h-screen relative">
         <AppHeader :user="currentUser" />
@@ -20,7 +14,6 @@
         </main>
         <BottomNav :active="tab" @change="handleTabChange" />
       </div>
-    </template>
   </div>
 </template>
 <script setup>
@@ -47,5 +40,9 @@ async function handleLogout(){
   const doClear=async()=>{ await store.clearUserStorage(); tab.value='home' }
   if(window.Telegram?.WebApp?.showConfirm){ window.Telegram.WebApp.showConfirm('Reset game? All XP, levels, bookmarks lost!', async(c)=>{ if(c) await doClear() }) } else { if(confirm('Reset game?')) await doClear() }
 }
-onMounted(async()=>{ await store.loadUserFromTelegramStorage() })
+onMounted(()=>{
+  // Never block the UI on Telegram CloudStorage. Local data is loaded immediately,
+  // while CloudStorage is allowed to hydrate in the background.
+  store.loadUserFromTelegramStorage({ timeoutMs: 1800 })
+})
 </script>
