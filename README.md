@@ -50,3 +50,8 @@ npm run dev   # http://localhost:3000
 - ✅ Bottom nav with Telegram blur style
 
 Theme: light green #F0FDF4 bg, #16A34A primary, white cards, soft shadows.
+
+## ICAI Library
+The app now includes `/api/icai-library`, a server-side indexer that searches ICAI's public search portal and extracts official `resource.cdn.icai.org` PDF links from ICAI result pages. The Resources tab exposes PYQ, RTP, MTP, Suggested Answer and Study Material filters with direct PDF buttons.
+
+The indexer intentionally does not copy or re-host ICAI PDFs; it surfaces the official PDF URL so the user downloads from ICAI's own CDN. ICAI's website includes an IPR notice, so deployment/redistribution should be reviewed against ICAI's current terms.
