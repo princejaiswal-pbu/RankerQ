@@ -1,0 +1,1 @@
+<template><div class="p-5"><h2 class="font-black">Quest Player - RankerQ by PP</h2><p class="text-[12px] text-gray-500">Gemini AI fresh quizzes with timer</p></div></template>

@@ -2,7 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-* { -webkit-tap-highlight-color: transparent; }
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+html, body, #app { min-height: 100%; margin: 0; }
+#app { min-height: 100vh; }
 body { font-family: 'Inter', sans-serif; overscroll-behavior: none; }
 
 .jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
